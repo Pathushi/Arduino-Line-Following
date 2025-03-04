@@ -38,7 +38,7 @@ long getDistance() {
 void moveForward() {
     long distance = getDistance();
     
-    if (distance <= 10 && distance > 0) {  // Stop if obstacle detected within 10 cm
+    if (distance <= 6 && distance > 0) {  // Stop if obstacle detected within 10 cm
         stopMotors();
         Serial.println("Obstacle detected! Stopping.");
         return;
@@ -130,28 +130,33 @@ void adjustLine() {
     moveForward();
 }
 
-// Move left and correct alignment
+// Move left with pivot turn
 void moveLeft() {
     Serial.println("Turning Left...");
-    digitalWrite(IN1, HIGH);
-    digitalWrite(IN2, LOW);
-    digitalWrite(IN3, HIGH);
-    digitalWrite(IN4, LOW);
-    analogWrite(ENA, 150);
-    analogWrite(ENB, 150);
+    
+    stopMotors();  
+    delay(100);  
 
-    delay(1000); 
+    // Pivot Turn: Left wheel stops, right wheel moves forward
+    digitalWrite(IN1, LOW);  // Stop left wheel
+    digitalWrite(IN2, LOW);  // Stop left wheel
+    digitalWrite(IN3, HIGH); // Move right wheel forward
+    digitalWrite(IN4, LOW);
+    analogWrite(ENA, 0);     // No power to left wheel
+    analogWrite(ENB, 160);   // Right wheel moves
+
+    delay(1761);  // Adjust timing for a 90-degree turn
     stopMotors();
     delay(100);
-    
+
     // Correct alignment after left turn
-    correctLeftTurn();
+    //correctLeftTurn();
     
-    // Give a little time before starting again
     delay(200);
     moveForward();
     delay(200);
 }
+
 
 // Move right and correct alignment
 void moveRight() {
