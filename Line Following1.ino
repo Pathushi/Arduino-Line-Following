@@ -1,3 +1,4 @@
+
 // Define motor driver pins
 #define ENA 3
 #define IN1 4
@@ -54,23 +55,23 @@ void moveForward() {
 // Functions for line corrections
 void moveLeftCorrection() {
     Serial.println("Correcting Left...");
-    digitalWrite(IN1, HIGH);
-    digitalWrite(IN2, LOW);
-    digitalWrite(IN3, HIGH);
-    digitalWrite(IN4, LOW);
-    analogWrite(ENA, 50);
-    analogWrite(ENB, 50);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    analogWrite(ENA, 100);
+    analogWrite(ENB, 100);
     delay(200);
 }
 
 void moveRightCorrection() {
     Serial.println("Correcting Right...");
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
-    digitalWrite(IN3, LOW);
-    digitalWrite(IN4, HIGH);
-    analogWrite(ENA, 50);
-    analogWrite(ENB, 50);
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    analogWrite(ENA, 100);
+    analogWrite(ENB, 100);
     delay(200);
 }
 
