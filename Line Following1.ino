@@ -35,81 +35,43 @@ long getDistance() {
 
 // Function to move forward with obstacle detection
 void moveForward() {
-    while (true) {  // Continuously check for obstacles
-        long distance = getDistance();
-        
-        if (distance <= 10 && distance > 0) {  // Stop if obstacle detected within 3 cm
-            stopMotors();
-            Serial.println("Obstacle detected! Stopping.");
-            return;
-        }
-
-        digitalWrite(IN1, LOW);
-        digitalWrite(IN2, HIGH);
-        digitalWrite(IN3, HIGH);
-        digitalWrite(IN4, LOW);
-        analogWrite(ENA, 60);
-        analogWrite(ENB, 60);
+    long distance = getDistance();
+    
+    if (distance <= 10 && distance > 0) {  // Stop if obstacle detected within 10 cm
+        stopMotors();
+        Serial.println("Obstacle detected! Stopping.");
+        return;
     }
+
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    analogWrite(ENA, 60);
+    analogWrite(ENB, 60);
 }
 
 // Functions for line corrections
 void moveLeftCorrection() {
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
-    digitalWrite(IN3, HIGH);
-    digitalWrite(IN4, LOW);
-    analogWrite(ENA, 60);
-    analogWrite(ENB, 60);
-}
-
-void moveRightCorrection() {
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
-    digitalWrite(IN3, HIGH);
-    digitalWrite(IN4, LOW);
-    analogWrite(ENA, 60);
-    analogWrite(ENB, 60);
-}
-
-// Move left and correct alignment
-void moveLeft() {
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
-    digitalWrite(IN3, LOW);
-    digitalWrite(IN4, HIGH);
-    analogWrite(ENA, 150);
-    analogWrite(ENB, 150);
-
-    delay(1000); 
-    stopMotors();
-    delay(100);
-    correctLeftTurn();
-    
-    moveForward();
-    delay(200);
-    stopMotors();
-    adjustLine();
-}
-
-// Move right and correct alignment
-void moveRight() {
+    Serial.println("Correcting Left...");
     digitalWrite(IN1, HIGH);
     digitalWrite(IN2, LOW);
     digitalWrite(IN3, HIGH);
     digitalWrite(IN4, LOW);
-    analogWrite(ENA, 150);
-    analogWrite(ENB, 150);
-
-    delay(1000);
-    stopMotors();
+    analogWrite(ENA, 50);
+    analogWrite(ENB, 50);
     delay(100);
-    correctRightTurn();
-    
-    moveForward();
-    delay(200);
-    stopMotors();
-    adjustLine();
+}
+
+void moveRightCorrection() {
+    Serial.println("Correcting Right...");
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    analogWrite(ENA, 50);
+    analogWrite(ENB, 50);
+    delay(100);
 }
 
 // Stop motors
@@ -125,8 +87,11 @@ void stopMotors() {
 // Handle T-junction
 void handleTJunction() {
     stopMotors();
-    Serial.println("T-Junction detected! Waiting for signal...");
-    atTJunction = true;
+    delay(300);  // Small delay to confirm it's a T-junction
+    if (digitalRead(IR_LEFT) == HIGH && digitalRead(IR_RIGHT) == HIGH) {
+        Serial.println("T-Junction detected! Waiting for signal...");
+        atTJunction = true;
+    }
 }
 
 // Execute turn based on command
@@ -146,25 +111,68 @@ void executeTurn(char signal) {
 
 // Adjust alignment after turns
 void adjustLine() {
-    while (digitalRead(IR_LEFT) != LOW || digitalRead(IR_RIGHT) != LOW) {
+    Serial.println("Adjusting line...");
+    while (digitalRead(IR_LEFT) == HIGH || digitalRead(IR_RIGHT) == HIGH) {
         if (digitalRead(IR_LEFT) == HIGH && digitalRead(IR_RIGHT) == LOW) {
             moveRightCorrection();
         } else if (digitalRead(IR_LEFT) == LOW && digitalRead(IR_RIGHT) == HIGH) {
             moveLeftCorrection();
-        } else {
-            stopMotors();
         }
     }
+    Serial.println("Line adjusted!");
     moveForward();
+}
+
+// Move left and correct alignment
+void moveLeft() {
+    Serial.println("Turning Left...");
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    analogWrite(ENA, 150);
+    analogWrite(ENB, 150);
+
+    delay(1000); 
+    stopMotors();
+    delay(100);
+    correctLeftTurn();
+    
+    moveForward();
+    delay(200);
+    stopMotors();
+    adjustLine();
+}
+
+// Move right and correct alignment
+void moveRight() {
+    Serial.println("Turning Right...");
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    analogWrite(ENA, 150);
+    analogWrite(ENB, 150);
+
+    delay(1000);
+    stopMotors();
+    delay(100);
+    correctRightTurn();
+    
+    moveForward();
+    delay(200);
+    stopMotors();
+    adjustLine();
 }
 
 // Correct right turn alignment
 void correctRightTurn() {
+    Serial.println("Correcting Right Turn...");
     while (digitalRead(IR_RIGHT) == LOW) {
-        digitalWrite(IN1, HIGH);
-        digitalWrite(IN2, LOW);
-        digitalWrite(IN3, HIGH);
-        digitalWrite(IN4, LOW);
+        digitalWrite(IN1, LOW);
+        digitalWrite(IN2, HIGH);
+        digitalWrite(IN3, LOW);
+        digitalWrite(IN4, HIGH);
         analogWrite(ENA, 150);
         analogWrite(ENB, 150);
     }
@@ -174,11 +182,12 @@ void correctRightTurn() {
 
 // Correct left turn alignment
 void correctLeftTurn() {
+    Serial.println("Correcting Left Turn...");
     while (digitalRead(IR_LEFT) == LOW) {
-        digitalWrite(IN1, LOW);
-        digitalWrite(IN2, HIGH);
-        digitalWrite(IN3, LOW);
-        digitalWrite(IN4, HIGH);
+        digitalWrite(IN1, HIGH);
+        digitalWrite(IN2, LOW);
+        digitalWrite(IN3, HIGH);
+        digitalWrite(IN4, LOW);
         analogWrite(ENA, 150);
         analogWrite(ENB, 150);
     }
@@ -215,8 +224,7 @@ void loop() {
         } else if (leftSensor == LOW && rightSensor == HIGH) {
             moveLeftCorrection();
         } else if (leftSensor == HIGH && rightSensor == HIGH) {
-            stopMotors();
-            handleTJunction();
+            handleTJunction();  // Properly detect and stop at T-junction
         } else {
             stopMotors();
         }
