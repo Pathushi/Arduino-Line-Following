@@ -60,7 +60,7 @@ void moveLeftCorrection() {
     digitalWrite(IN4, LOW);
     analogWrite(ENA, 50);
     analogWrite(ENB, 50);
-    delay(100);
+    delay(200);
 }
 
 void moveRightCorrection() {
@@ -71,7 +71,7 @@ void moveRightCorrection() {
     digitalWrite(IN4, HIGH);
     analogWrite(ENA, 50);
     analogWrite(ENB, 50);
-    delay(100);
+    delay(200);
 }
 
 // Stop motors
@@ -109,16 +109,22 @@ void executeTurn(char signal) {
     atTJunction = false;
 }
 
-// Adjust alignment after turns
+// Adjust alignment after turns or drifting off
 void adjustLine() {
     Serial.println("Adjusting line...");
-    while (digitalRead(IR_LEFT) == HIGH || digitalRead(IR_RIGHT) == HIGH) {
-        if (digitalRead(IR_LEFT) == HIGH && digitalRead(IR_RIGHT) == LOW) {
-            moveRightCorrection();
-        } else if (digitalRead(IR_LEFT) == LOW && digitalRead(IR_RIGHT) == HIGH) {
+
+    // Keep adjusting until both sensors detect the line
+    while (digitalRead(IR_LEFT) == LOW && digitalRead(IR_RIGHT) == LOW) {
+        Serial.println("Lost line! Searching...");
+        // Continuously adjust until both sensors detect the line
+        if (digitalRead(IR_LEFT) == LOW && digitalRead(IR_RIGHT) == LOW) {
+            // Move in small corrective steps
             moveLeftCorrection();
+            delay(200);  // Small delay for stabilization
         }
     }
+
+    // Once both sensors detect the line, move forward
     Serial.println("Line adjusted!");
     moveForward();
 }
@@ -136,12 +142,14 @@ void moveLeft() {
     delay(1000); 
     stopMotors();
     delay(100);
+    
+    // Correct alignment after left turn
     correctLeftTurn();
     
+    // Give a little time before starting again
+    delay(200);
     moveForward();
     delay(200);
-    stopMotors();
-    adjustLine();
 }
 
 // Move right and correct alignment
@@ -157,12 +165,14 @@ void moveRight() {
     delay(1000);
     stopMotors();
     delay(100);
+
+    // Correct alignment after right turn
     correctRightTurn();
     
+    // Give a little time before starting again
+    delay(200);
     moveForward();
     delay(200);
-    stopMotors();
-    adjustLine();
 }
 
 // Correct right turn alignment
