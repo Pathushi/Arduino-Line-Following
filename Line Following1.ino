@@ -158,28 +158,33 @@ void moveLeft() {
 }
 
 
-// Move right and correct alignment
+// Move right with pivot turn
 void moveRight() {
     Serial.println("Turning Right...");
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
-    digitalWrite(IN3, LOW);
-    digitalWrite(IN4, HIGH);
-    analogWrite(ENA, 150);
-    analogWrite(ENB, 150);
+    
+    stopMotors();  
+    delay(100);  
 
-    delay(1000);
+    // Pivot Turn: Right wheel stops, left wheel moves forward
+    digitalWrite(IN1, HIGH); // Move left wheel forward
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, LOW);  // Stop right wheel
+    digitalWrite(IN4, LOW);
+    analogWrite(ENA, 160);   // Left wheel moves
+    analogWrite(ENB, 0);     // No power to right wheel
+
+    delay(1761);  // Adjust timing for a 90-degree turn
     stopMotors();
     delay(100);
 
     // Correct alignment after right turn
-    correctRightTurn();
+    //correctRightTurn();
     
-    // Give a little time before starting again
     delay(200);
     moveForward();
     delay(200);
 }
+
 
 // Correct right turn alignment
 void correctRightTurn() {
